@@ -1,0 +1,49 @@
+body {
+    background-color: #212121;
+}
+
+.login_register_div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+.create_post_text{
+    color: white;
+    font-family: sans-serif;
+    padding: 0px;
+    margin: 0px;
+}
+
+.mini_header_text{
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+.inputs_login_register{
+    width: 25%;
+    background-color: #2a3236;
+    border-radius: 5px;
+    border: 0px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
+}
+
+.buttons_login_register{
+    padding: 10px 20px;
+    background-color: #2a3236;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    border: 0px;
+}
+
+.buttons_login_register:hover{
+    background-color: #1a1a1a;
+}

@@ -71,6 +71,7 @@ body{
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 5px;
 }
 
 .post_div{
@@ -154,3 +155,71 @@ body{
     gap: 5px;
 }
 
+.div_categories{
+    border:  #444 solid 1px;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+}
+
+
+.buttons_login_register{
+    padding: 10px 20px;
+    background-color: #2a3236;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.buttons_login_register:hover{
+    background-color: #1a1a1a;
+}
+
+
+.div_buttons_body{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 50px;
+}
+
+#main_search_bar{
+    height: 100%;
+    border-radius: 20px;
+    padding: 0px 10px;
+    margin: 0px;
+    border: 0px;
+    background-color: #2f2f2f;
+    color: white;
+    width: 300px;
+}
+
+.search_icon{
+    height: 100%;
+    cursor: pointer;
+}
+
+.search_button{
+    background-color: #2a3236;
+    border-radius: 15px;
+    border: 0px solid;
+    height: 100%;
+    width: 45px;
+}
+
+.search_button:hover{
+    background-color: #1a1a1a;
+}
+
+.div_search_bar{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    height: 30px;
+    gap: 5px;
+}
