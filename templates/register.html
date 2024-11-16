@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="../static/login.css">
+    <script src="../static/register.js"></script>
 </head>
 <body>
     {% include 'header.html' %}
@@ -17,8 +18,10 @@
         <span class="mini_header_text">Password</span>
         <input type="password" class="inputs_login_register" id="password_1">
         <span class="mini_header_text">Confirm Password</span>
-        <input type="password" class="inputs_login_register" id="password_1">
-        <button class="buttons_login_register">Register</button>
+        <input type="password" class="inputs_login_register" id="password_2">
+        <button class="buttons_login_register" id="register_button">Register</button>
+        <div id="failed_message" class="login_register_div"></div>
     </div>
+
 </body>
 </html>
