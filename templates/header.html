@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/home.css">
     <title>Document</title>
     <style>
         html, body {
             margin: 0;
             width: 100%;
         }
-        #logo_img{
+        #logo_img {
             width: 200px;
             height: auto;
             margin: 0px 20px;
         }
-        .main_div{
+        .main_div {
             background-color: #1a1a1a;
             width: 100%;
             display: flex;
@@ -22,12 +23,12 @@
             justify-content: space-between;
             padding: 10px 0px;
         }
-        .div_login_register{
+        .div_login_register {
             display: flex;
             flex-direction: row;
             align-items: center;
         }
-        #buttons_login_register{
+        .buttons_login_register {
             padding: 10px 20px;
             background-color: #2a3236;
             color: white;
@@ -37,10 +38,14 @@
             text-align: center;
             cursor: pointer;
             margin: 0px 20px;
+            border: 0px;
         }
 
-        #buttons_login_register:hover{
+        .buttons_login_register:hover {
             background-color: #1a1a1a;
+        }
+        .top_user_name {
+            margin: 0px 15px;
         }
     </style>
 </head>
@@ -51,10 +56,32 @@
                 <img src="../static/logo.png" id="logo_img">
             </a>
         </div>
-        <div class="div_login_register">
-            <a href="/login" id="buttons_login_register">login</a>
-            <a href="/register" id="buttons_login_register">register</a>
+        <div class="div_login_register" id="div_login_register">
         </div>
     </div>
 </body>
+<script>
+    // funtion to logout users 
+    function logout (){
+        localStorage.setItem("user_info", "");
+        localStorage.setItem("authToken", "");
+        location.reload();
+    }
+
+    // checks if the users a token
+    if (localStorage.getItem("authToken") == null || localStorage.getItem("authToken") == "") {
+        div_login_register = `
+            <a href="/login" class="buttons_login_register">login</a>
+            <a href="/register" class="buttons_login_register">register</a>
+        `;
+    } else {
+        const user = JSON.parse(localStorage.getItem("user_info")); 
+        div_login_register = `
+            <img src="http://127.0.0.1:5000/static/${user["profile_pic"]}" alt="" class="user_icon_profile">
+            <a class="top_user_name" href="/profile/${user["user_id"]}">${user["username"]}</a>
+            <button class="buttons_login_register"  onclick="logout()">logout</button>
+        `;
+    }
+    document.getElementById("div_login_register").innerHTML = div_login_register;
+</script>
 </html>

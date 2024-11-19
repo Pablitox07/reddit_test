@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Post</title>
     <link rel="stylesheet" href="../static/createPost.css">
+    <script src="../static/createPost.js"></script>
+    <link rel="stylesheet" href="../static/login.css">
 </head>
 <body>
     {% include 'header.html' %}
     <div class="div_create_post">
         <h1 class="create_post_text">Create post</h1>
         <input type="text" name="" id="post_tittle" class="post_inputs" placeholder="Post Tittle">
-        <textarea name="" id="post_content" class="post_inputs"></textarea> <!-- Changed to <textarea> -->
+        <textarea name="" id="post_content" class="post_inputs"></textarea> 
         <label class="top_user_name">Category</label>
-        <select id="options" name="options" class="categories_dropdown">
-            <option value="option1">Option 1</option>
-            <option value="option2">Option 2</option>
-            <option value="option3">Option 3</option>
-            <option value="option4">Option 4</option>
+        <select id="categories_dropdown" class="categories_dropdown">
+            <option value="" selected>Select an option</option>
         </select>
-        <button class="buttons_login_register">Pubish Post</button>
+        <button id= "button_publish_post" class="buttons_login_register">Pubish Post</button>
+        <div id="user_info_login" class="login_register_div"></div>
     </div>
 </body>
 </html>
