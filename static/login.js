@@ -38,23 +38,23 @@ document.addEventListener("DOMContentLoaded", ()=> {
                 },
                 body: JSON.stringify(params),
             })
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data["status"] >= 400){
-                        user_info_login.innerHTML = `<h3 class="create_post_text">${data["message"]}</h3><img src="../static/failed_face.jpg" alt="" srcset="" class="failed_face">`;
-                    }
-                    else {
-                        localStorage.setItem("authToken", data["token"]);
-                        localStorage.setItem("user_info",JSON.stringify(data["user_info"]));
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data["status"] >= 400){
+                    user_info_login.innerHTML = `<h3 class="create_post_text">${data["message"]}</h3><img src="../static/failed_face.jpg" alt="" srcset="" class="failed_face">`;
+                }
+                else {
+                    localStorage.setItem("authToken", data["token"]);
+                    localStorage.setItem("user_info",JSON.stringify(data["user_info"]));
 
-                        window.location.href = `${website}/`; 
-                    }
-                })
-                .catch(error => {
-                    console.log(error);
-                });
+                    window.location.href = `${website}/`; 
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
         }
         
     });

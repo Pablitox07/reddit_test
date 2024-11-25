@@ -51,6 +51,15 @@ body{
     text-decoration: none;
 }
 
+.category_link_name {
+    font-family: sans-serif;
+    font-size: 15px;
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+}
+
 .div_mini_headers{
     border: #444 solid 1px;
     border-radius: 5px;

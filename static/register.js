@@ -86,10 +86,9 @@ document.addEventListener("DOMContentLoaded", ()=> {
                         failed_message.innerHTML = `<h3 class="create_post_text">${data["message"]}</h3><img src="../static/failed_face.jpg" alt="" srcset="" class="failed_face">`;
                     }
                     else {
-                        list_cookies = ["valid_cookie", "username", "profile_pic", "email", "user_id"];
-                        list_cookies.forEach(cookie => {
-                            document.cookie = `${cookie}=${data[cookie]}; expires=${data["valid_cookie"]}; path=/`;
-                        });
+                        localStorage.setItem("authToken", data["token"]);
+                        localStorage.setItem("user_info",JSON.stringify(data["user_info"]));
+    
                         window.location.href = `${website}/`; 
                     }
                 })

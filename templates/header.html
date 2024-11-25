@@ -61,10 +61,18 @@
     </div>
 </body>
 <script>
+
+    let user_info;
+
     // funtion to logout users 
     function logout (){
         localStorage.setItem("user_info", "");
         localStorage.setItem("authToken", "");
+        user_info = {
+            "user_logged": false,
+            "user_info": null, 
+            "user_auth": null
+        };
         location.reload();
     }
 
@@ -74,6 +82,11 @@
             <a href="/login" class="buttons_login_register">login</a>
             <a href="/register" class="buttons_login_register">register</a>
         `;
+        user_info = {
+            "user_logged": false,
+            "user_info": null, 
+            "user_auth": null
+        };
     } else {
         const user = JSON.parse(localStorage.getItem("user_info")); 
         div_login_register = `
@@ -81,6 +94,11 @@
             <a class="top_user_name" href="/profile/${user["user_id"]}">${user["username"]}</a>
             <button class="buttons_login_register"  onclick="logout()">logout</button>
         `;
+        user_info = {
+            "user_logged": true,
+            "user_info": JSON.parse(localStorage.getItem("user_info")),
+            "user_auth": localStorage.getItem("authToken")
+        };
     }
     document.getElementById("div_login_register").innerHTML = div_login_register;
 </script>
