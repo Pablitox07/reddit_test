@@ -29,6 +29,112 @@ app = Flask(__name__)
 def home():
     return render_template('home.html')
 
+
+@app.route('/load_home_posts')
+def load_home_posts():
+    response = {}
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query_get_latest_10_posts = """
+    SELECT TOP 10 Posts.*, Users.user_id, Users.profile_picture, Users.username
+    FROM Posts
+    JOIN Users ON Posts.user_id = Users.user_id
+    ORDER BY Posts.created_at DESC;
+    """
+
+    cursor.execute(query_get_latest_10_posts)
+    latest_posts = cursor.fetchall()
+    for post_number in range(len(latest_posts)):
+        current_post_id = latest_posts[post_number][0]
+        query_calculate_number_comments = """
+        SELECT COUNT(*) FROM Comments
+        WHERE post_id = ?;
+        """
+        cursor.execute(query_calculate_number_comments, (current_post_id))
+        post_number_comments = cursor.fetchone()
+
+        post_number_likes = calculate_like_dislike_ratio("Posts_likes", "post_id", current_post_id)
+        # 0 post_id, 1 user_id, 2 comments DO NOT USE THIS ONE, 3 Likes DO NOT USE, 4 post_text, 5 tittle, 6 category, 7 created_at, 8 profile_pic, 9 username
+        response[str(post_number)] = {
+            "post_id": latest_posts[post_number][0],
+            "user_id": latest_posts[post_number][1],
+            "post_text": latest_posts[post_number][4],
+            "tittle": latest_posts[post_number][5],
+            "category": latest_posts[post_number][6],
+            "created_at": latest_posts[post_number][7],
+            "profile_pic": latest_posts[post_number][9],
+            "username": latest_posts[post_number][10],
+            "number_comments": post_number_comments[0],
+            "number_likes": post_number_likes
+        }
+    return response
+
+@app.route('/load_top_post')
+def load_top_post():
+    response = {}
+    response["top_posters"] = {}
+    response["top_posts"] = {}
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query_top_posters = """
+    SELECT TOP 5 user_id, COUNT(*) AS total_posts
+    FROM Posts
+    GROUP BY user_id
+    ORDER BY total_posts desc;
+    """
+
+    query_top_posts = """
+    SELECT TOP 5
+        Posts_likes.post_id,
+        SUM(CASE WHEN Posts_likes.like_dislike = 'l' THEN 1 ELSE 0 END) -
+        SUM(CASE WHEN Posts_likes.like_dislike = 'd' THEN 1 ELSE 0 END) AS net_likes,
+        Posts.title,
+        Posts.user_id,
+	    Users.profile_picture
+    FROM Posts_likes
+    JOIN Posts ON Posts.post_id = Posts_likes.post_id
+    JOIN Users ON Users.user_id = Posts.user_id
+    GROUP BY Posts_likes.post_id, Posts.title, Posts.user_id, Users.profile_picture
+    ORDER BY net_likes DESC;
+    """
+
+    cursor.execute(query_top_posters)
+    top_posters = cursor.fetchall()
+
+    cursor.execute(query_top_posts)
+    top_posts = cursor.fetchall()
+
+
+    for number_user in range(len(top_posters)):
+        user_id = top_posters[number_user][0]
+        total_posts = top_posters[number_user][1]
+        query_get_top_poster_info = """
+        SELECT username, profile_picture FROM Users
+        WHERE user_id = ?;
+        """
+
+        cursor.execute(query_get_top_poster_info, (user_id))
+        user_info = cursor.fetchone()
+        response["top_posters"][number_user] = {
+            "user_id" : user_id,
+            "username": user_info[0], 
+            "user_score": total_posts,
+            "profile_pic": user_info[1]
+        }
+
+        response["top_posts"][number_user] = {
+            "post_id" : top_posts[number_user][0], 
+            "number_likes" : top_posts[number_user][1],
+            "tittle":  top_posts[number_user][2],
+            "user_id": top_posts[number_user][3],
+            "profile_pic": top_posts[number_user][4]
+        }
+
+    return response
+    
 @app.route('/createPost')
 def createPost():
     return render_template('createPost.html')
@@ -590,4 +696,4 @@ def calculate_like_dislike_ratio(table_name, post_comment_id, actual_post_commen
     return likes_per_comments
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

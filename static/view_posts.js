@@ -1,4 +1,3 @@
-const website = "http://127.0.0.1:5000";
 
 // create a function to publish the comment
 function publish_comment (){
@@ -181,7 +180,6 @@ document.addEventListener("DOMContentLoaded", ()=> {
     else{
         fetch_url = `${website}/get_post_info?post_id=${received_post_id}&user_id=nouser`;
     }
-    console.log(fetch_url);
     fetch(fetch_url, {
         method: "GET",
         headers: {
