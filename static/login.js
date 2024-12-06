@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", ()=> {
                 }
                 else {
                     localStorage.setItem("authToken", data["token"]);
-                    localStorage.setItem("user_info",JSON.stringify(data["user_info"]));
+                    localStorage.setItem("user_info", JSON.stringify(data["user_info"]));
 
                     window.location.href = `${website}/`; 
                 }

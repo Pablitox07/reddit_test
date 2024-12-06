@@ -4,6 +4,7 @@ import pyodbc
 import bcrypt
 import jwt
 import pytz
+import os
 
 connection_string = (
     "Driver={ODBC Driver 17 for SQL Server};"
@@ -24,6 +25,8 @@ except Exception as e:
 
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = "static"
+
 
 @app.route('/')
 def home():
@@ -248,7 +251,133 @@ def get_post_info():
 
 @app.route("/profile/<user_id>")
 def profile(user_id):
-    return render_template("profile.html")
+    user_id = request.base_url.split(('/'))[-1]
+    return render_template("profile.html", user_id=user_id)
+
+
+@app.route('/get_user_info', methods=["GET"])
+def get_user_info():
+    received_user_id = request.args.get('user')
+    response = {}
+    most_liked_list = []
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query_user_info = """
+    SELECT profile_picture, created_at, user_id, username FROM Users
+    WHERE user_id = ?;
+    """
+    cursor.execute(query_user_info, (received_user_id))
+    # ('the_beatles.png', datetime.datetime(2024, 11, 28, 17, 35, 35, 743000), 31)
+    user_info = cursor.fetchone()
+    
+    query_get_first_post = """
+    SELECT post_id, title FROM Posts
+    WHERE user_id = ?
+    ORDER BY created_at ASC;
+    """
+    cursor.execute(query_get_first_post, (received_user_id))
+    posts_info = cursor.fetchall()
+    # [(19, 'The Beatles: A Timeless Legacy')] [0] is the first post
+    if posts_info == []:
+        return {
+            "username": user_info[3],
+            "profile_pic": user_info[0],
+            "joined_on": user_info[1],
+            "first_post_title": "no posts yet",
+            "first_post_id": "no posts yet",
+            "latest_post_title":"no posts yet",
+            "latest_post_id":"no posts yet",
+            "popular_post_title": "no posts yet",
+            "popular_post_id": "no posts yet",
+        }
+    else:
+        for post in posts_info:
+            query_get_likes = """
+            SELECT     
+                SUM(CASE WHEN Posts_likes.like_dislike = 'l' THEN 1 ELSE 0 END) -
+                SUM(CASE WHEN Posts_likes.like_dislike = 'd' THEN 1 ELSE 0 END) AS net_likes 
+            FROM Posts_likes
+            WHERE post_id = ?;
+            """
+            cursor.execute(query_get_likes, (post[0]))
+            current_post_likes = cursor.fetchone()
+            if current_post_likes[0] == None:
+                most_liked_list.append(0)
+            else:
+                most_liked_list.append(current_post_likes[0])
+
+
+    if max(most_liked_list) == 0:
+        return {
+            "username": user_info[3],
+            "profile_pic": user_info[0],
+            "joined_on": user_info[1],
+            "first_post_title": posts_info[0][1],
+            "first_post_id": posts_info[0][0],
+            "latest_post_title":posts_info[-1][1],
+            "latest_post_id":posts_info[-1][0],
+            "popular_post_title": "no likes yet",
+            "popular_post_id": "no likes yet",
+        }
+
+    else:
+        popular_post_index = most_liked_list.index(max(most_liked_list))
+        return {
+            "username": user_info[3],
+            "profile_pic": user_info[0],
+            "joined_on": user_info[1],
+            "first_post_title": posts_info[0][1],
+            "first_post_id": posts_info[0][0],
+            "latest_post_title":posts_info[-1][1],
+            "latest_post_id":posts_info[-1][0],
+            "popular_post_title": posts_info[popular_post_index][1],
+            "popular_post_id": posts_info[popular_post_index][0],
+        }
+
+@app.route('/change_profile_pic', methods=["POST"])
+def change_profile_pic():
+    user_to_be_change = request.args.get('user')
+    auth_header = request.headers.get('Authorization')
+
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return {"message": "Missing or invalid token.", "status": 401}, 401
+    
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+
+        if 'file' not in request.files:
+            return "No file part in the request", 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return "No file selected", 400
+
+        file_format = file.filename.split(".")[-1]
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], f"user_{user_to_be_change}.{file_format}"))
+        query_modify_profile_pic = """
+        UPDATE Users
+        SET profile_picture = ?
+        WHERE user_id = ?;
+        """
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(query_modify_profile_pic, (f"user_{user_to_be_change}.{file_format}", user_to_be_change))
+        conn.commit()
+        conn.close()
+
+        return {"message": f"user_{user_to_be_change}.{file_format}", "status": 200}, 200
+    except jwt.ExpiredSignatureError as e:
+        print(e)
+        return {"message": "Token has expired.", "status": 401}, 401
+    except jwt.InvalidTokenError as e:
+        print(e)
+        return {"message": "Invalid token.", "status": 401}, 401
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"message": "An unexpected error occurred. Please try again later.", "status": 500}, 500
+
 
 @app.route('/registerUser', methods=['POST'])
 def registerUser():
@@ -411,7 +540,6 @@ def publishPost():
         print(f"Error: {e}")
         return {"message": "An unexpected error occurred. Please try again later.", "status": 500}, 500
 
-
 @app.route("/post_like_dislike", methods=["POST"])
 def post_like_dislike():
     received_comment_or_post_id = request.json.get('comment_or_post_id')
@@ -441,8 +569,6 @@ def post_like_dislike():
             comment_or_post_variables = ["Comments", "comment_id", "Comments_likes"]
         else: 
             comment_or_post_variables = ["Posts", "post_id", "Posts_likes"]
-
-        print(comment_or_post_variables)
             
         # if the receive action is a like
         if received_like_or_dislike == "like":
@@ -542,6 +668,7 @@ def check_user_likes_post():
     received_post_id = request.args.get('post_id')
     received_user_id = request.args.get('user_id')
     return check_user_likes_post (received_post_id, received_user_id)
+
 
 
 # ------------------- Functions below here ----------------------------

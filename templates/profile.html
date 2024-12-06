@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        const received_user_id = {{ user_id }};
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USER NAME HERE</title>
+    <title></title>
     <link rel="stylesheet" href="../static/home.css">
     <link rel="stylesheet" href="../static/profile.css">
 </head>
 <body>
     {% include 'header.html' %}
     <div class="profile_div">
-        <div class="div_categories">
-            <span class="mini_header_text">Latest followers</span>
-        </div>
-        <div class="div_categories">
-            <span class="mini_header_text">USER INFO</span>
-        </div>
-        <div class="div_categories">
-            <span class="mini_header_text">Latest POSTS</span>
+        <div class="div_info_user">
+            <span class="mini_header_text" id="span_show_username"></span>
+            <img src="" alt="" class="profile_page_pic" id="profile_pic_user_profile">
+            <div class="div_change_profile_pic" id="div_change_profile_pic">
+                <input type="file" id="imageUpload" name="image" accept="image/*" >
+                <button class="buttons_login_register" id="button_change_profile_pic">Change profile picture</button>
+            </div>
+            <ul>
+                <li class="mini_header_text" id="joined_on_span"></li>
+                <li class="mini_header_text" id="first_post_span"></li>
+                <li class="mini_header_text" id="latest_post_span"> </li>
+                <li class="mini_header_text" id="popular_post_span"></li>
+            </ul>
         </div>
     </div>
 </body>
+<script src="../static/profile.js"></script>
 </html>
