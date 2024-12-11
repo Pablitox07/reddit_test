@@ -10,6 +10,7 @@ body{
 
 #div_posts{
     width: 50%;
+    text-align: center;
 }
 
 .body_divs{
@@ -201,7 +202,7 @@ body{
 .div_buttons_body{
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     margin: 10px 50px;
 }
@@ -240,4 +241,10 @@ body{
     justify-content: center;
     height: 30px;
     gap: 5px;
+}
+
+.failed_face {
+    height: 200px;
+    width: 200px;
+    border-radius: 10px;
 }

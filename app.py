@@ -669,6 +669,53 @@ def check_user_likes_post():
     received_user_id = request.args.get('user_id')
     return check_user_likes_post (received_post_id, received_user_id)
 
+@app.route('/categories/<category>', methods=['GET'])
+def categories(category):
+    return render_template("category.html", category=category.replace("_", " "))
+
+@app.route('/category_posts', methods=['GET'])
+def category_posts():
+    received_category_name = request.args.get('category_name')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT TOP 10 post_id, Posts.user_id, content, title, Posts.created_at, Users.username, Users.profile_picture FROM Posts
+    JOIN Users ON Posts.user_id = Users.user_id
+    WHERE category = ?
+    ORDER BY created_at asc;
+    """
+    cursor.execute(query, (received_category_name))
+    list_posts_per_category =  cursor.fetchall()
+    if list_posts_per_category == []:
+        return {"message": "No posts yet!", "status": 200}
+    else:
+        result = {
+            "message": "posts found", 
+            "status": 200,
+            "posts": []
+        }
+        for number_post in range(len(list_posts_per_category)):
+            post_likes = calculate_like_dislike_ratio("Posts_likes", "post_id", list_posts_per_category[number_post][0])
+            query_number_comments = """
+            SELECT COUNT(*) FROM Comments
+            Where post_id = ?;
+            """
+            cursor.execute(query_number_comments, (list_posts_per_category[number_post][0]))
+            number_comments =  cursor.fetchone()
+            result["posts"].append({
+                "post_id": list_posts_per_category[number_post][0],
+                "user_id": list_posts_per_category[number_post][1],
+                "content": list_posts_per_category[number_post][2],
+                "title": list_posts_per_category[number_post][3],
+                "created_at": list_posts_per_category[number_post][4],
+                "user_name" : list_posts_per_category[number_post][5],
+                "profile_pic": list_posts_per_category[number_post][6],
+                "number_likes": post_likes,
+                "number_comments": number_comments[0]
+            })
+        return result
 
 
 # ------------------- Functions below here ----------------------------

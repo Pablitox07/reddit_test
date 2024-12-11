@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        // Use the passed Flask variable correctly
+        const received_category = "{{ category }}";
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="../static/home.css">
-    <script src="../static/home.js"></script>
+    <title>{{ category }}</title>
+    <script src="../static/category.js"></script>
+    <link rel="stylesheet" href="../static/category.css">
 </head>
 <body>
     {% include 'header.html' %}
@@ -16,7 +20,9 @@
         <div class="body_divs">
             <div class="div_categories" id="div_list_categories"></div>
         </div>
-        <div class="body_divs" id="div_posts"></div>
+        <div class="body_divs" id="div_posts">
+            
+        </div>
         <div class="body_divs">
             <div class="div_mini_headers">
                 <span class="mini_header_text">TOP POSTERS</span>
@@ -31,3 +37,4 @@
     </div>
 </body>
 </html>
+

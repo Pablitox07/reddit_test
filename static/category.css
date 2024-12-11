@@ -1,0 +1,5 @@
+.div_no_post{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

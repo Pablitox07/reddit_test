@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", ()=> {
         let top_posts = ""; 
         for (const key in data["top_posters"]) {
             console.log(key);
-            top_posters += `<div class="div_top_user_info"><img src="../static/${data["top_posters"][key]["profile_pic"]}" class="user_icon_profile"><span class="top_user_name">&middot; ${data["top_posters"][key]["username"]} &middot; ${data["top_posters"][key]["user_score"]} Posts</span></div>`;
+            top_posters += `<div class="div_top_user_info"><img src="../static/${data["top_posters"][key]["profile_pic"]}" class="user_icon_profile"><a class="top_user_name" href="/profile/${data["top_posters"][key]["user_id"]}">&middot; ${data["top_posters"][key]["username"]} &middot; ${data["top_posters"][key]["user_score"]} Posts</a></div>`;
             top_posts += `<div class="div_top_user_info"><img src="../static/${data["top_posts"][key]["profile_pic"]}" class="user_icon_profile"><a href="/posts/${data["top_posts"][key]["post_id"]}" class="top_user_name">${data["top_posts"][key]["tittle"]}</a></div>`
         }
         document.getElementById("list_top_users").innerHTML = top_posters;
