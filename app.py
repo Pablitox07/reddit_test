@@ -5,16 +5,93 @@ import bcrypt
 import jwt
 import pytz
 import os
+from dotenv import load_dotenv
+import traceback
+import shutil
+import re
+import base64
+load_dotenv()
 
-connection_string = (
-    "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=localhost;"
-    "Database=Reddit_db;"
-    "Trusted_Connection=Yes;"
-)
+db_password = os.environ.get('DB_PASSWORD')
+
+connection_string = ()
 
 SECRET_KEY = "vcwwue32jidnsv5ncdu1223349dbucwutang"
 
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.path.join("static","images")
+app.config['UPLOAD_POST_IMAGES'] = os.path.join("static","post_images")
+running_on = ""
+
+
+if os.environ.get("WEBSITE_SITE_NAME"):
+    print("Running in Azure App Service")
+    running_on = "app service"
+    connection_string = (
+        "Driver={ODBC Driver 18 for SQL Server};"
+        "Server=tcp:mysqltestpablitox.database.windows.net;"
+        "Database=Reddit_db;"
+        "Authentication=ActiveDirectoryMsi;"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+    app.config['UPLOAD_FOLDER'] = "/home/site/wwwroot/images"
+    app.config['UPLOAD_POST_IMAGES'] = "/home/site/wwwroot/post_images"
+    source = "/home/site/wwwroot/images"
+    source_post_images = "/home/site/wwwroot/post_images"
+    link_name = os.path.join("static", "images")
+    link_name_post_images = os.path.join("static", "post_images")
+    # If it's a real folder, delete it
+    if os.path.isdir(link_name) and not os.path.islink(link_name):
+        print(f"Removing existing folder at {link_name}")
+        shutil.rmtree(link_name)
+    
+    if os.path.isdir(link_name_post_images) and not os.path.islink(link_name_post_images):
+        print(f"Removing existing folder at {link_name_post_images}")
+        shutil.rmtree(link_name_post_images)
+
+
+    # Create the symlink if it doesn't exist
+    if not os.path.islink(link_name):
+        try:
+            os.symlink(source, link_name)
+            print(f"Symlink created: {link_name} → {source}")
+        except Exception as e:
+            print(f"Failed to create symlink: {e}")
+    if not os.path.islink(link_name_post_images):
+        try:
+            os.symlink(source_post_images, link_name_post_images)
+            print(f"Symlink created: {link_name_post_images} → {source_post_images}")
+        except Exception as e:
+            print(f"Failed to create symlink: {e}")
+
+elif os.environ.get("COMPUTERNAME"):
+    print(f"Running on a {os.environ.get("COMPUTERNAME")}")
+    running_on = "vm"
+    connection_string = (
+        "Driver={ODBC Driver 17 for SQL Server};"
+        "Server=mysqltestpablitox.database.windows.net;"
+        "Database=Reddit_db;"
+        "Uid=pablitox;"
+        f"Pwd={db_password};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+else:
+    print("Running locally or unknown")
+    running_on = "vm"
+    connection_string = (
+        "Driver={ODBC Driver 17 for SQL Server};"
+        "Server=mysqltestpablitox.database.windows.net;"
+        "Database=Reddit_db;"
+        "Uid=pablitox;"
+        f"Pwd={db_password};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
 
 try:
     conn = pyodbc.connect(connection_string)
@@ -22,10 +99,6 @@ try:
     conn.close()
 except Exception as e:
     print(f"Error: {e}")
-
-
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = "static"
 
 
 @app.route('/')
@@ -496,49 +569,122 @@ def loguser():
 
 @app.route("/publishPost", methods=['POST'])
 def publishPost():
-    #get needed info from request 
+    # Get needed info from request JSON payload
     received_userid = request.json.get('userid')
     received_title = request.json.get("title")
     received_posts_text = request.json.get("text")
     received_category = request.json.get("category")
+    
+    # Get the Authorization header from the request
     auth_header = request.headers.get('Authorization')
 
+    # Check if the Authorization header is missing or improperly formatted
     if not auth_header or not auth_header.startswith("Bearer "):
         return {"message": "Missing or invalid token.", "status": 401}, 401
     
+    # Extract the token from the Authorization header
     token = auth_header.split(" ")[1]
-    
+        
     try:
-        # Decode and validate the token
+        # Decode and validate the JWT token
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        
+        # Connect to the database
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = """
-        INSERT INTO Posts (user_id, content, title, category)
-        VALUES 
-            (?, ?, ?, ?)
-        """
-        cursor.execute(query, (received_userid, received_posts_text, received_title, received_category))
-        conn.commit()
 
-        query_get_post_id = """
-        SELECT * FROM Posts
-        WHERE content = ? AND title = ? AND user_id = ?;
-        """
-        cursor.execute(query_get_post_id, (received_posts_text, received_title, received_userid))
-        new_post_row = cursor.fetchone()
+        # Find all base64-encoded images in the post content
+        img_tags = re.findall(r'<img[^>]+src="(data:image/[^"]+)"', received_posts_text)
 
-        return {"message": "Success", "post_id": new_post_row[0]}
+        # If there are embedded images in the post content
+        if img_tags != []:
+            # Insert a temporary post with placeholder content ("template")
+            query = """
+            INSERT INTO Posts (user_id, content, title, category)
+            VALUES 
+                (?, ?, ?, ?)
+            """
+            cursor.execute(query, (received_userid, "template", received_title, received_category))
+            conn.commit()
+
+            # Retrieve the newly inserted post to get its ID
+            query_get_post_id = """
+            SELECT * FROM Posts
+            WHERE content = ? AND title = ? AND user_id = ?;
+            """
+            cursor.execute(query_get_post_id, ("template", received_title, received_userid))
+            new_post_row = cursor.fetchone()
+            post_id = new_post_row[0]
+
+            NUM = 0  # Image counter to create unique filenames
+            for base64_image in img_tags:
+                # Split base64 image data into header and actual image data
+                header, encoded = base64_image.split(',', 1)  
+                # Get file extension from the header
+                file_ext = header.split('/')[1].split(';')[0]
+                # Decode the base64-encoded image
+                binary_data = base64.b64decode(encoded)
+                # Generate a unique filename and define the file path
+                filename = f'post_{post_id}_{NUM}.{file_ext}'
+                filepath = os.path.join(app.config['UPLOAD_POST_IMAGES'], filename)
+
+                # Save the image to the file system
+                with open(filepath, 'wb') as f:
+                    f.write(binary_data)
+
+                # Replace base64 string in content with URL to saved image
+                image_url = f'/static/post_images/{filename}'
+                received_posts_text = received_posts_text.replace(base64_image, image_url)
+                NUM += 1
+
+            # Update the post with the actual content including image URLs
+            update_content = """
+            UPDATE Posts
+            SET content = ?
+            WHERE post_id = ?;
+            """
+            cursor.execute(update_content, (received_posts_text, post_id))
+            conn.commit()
+
+            # Return success message and new post ID
+            return {"message": "Success", "post_id": new_post_row[0]}
+        
+        else: 
+            # If there are no images, insert the post directly
+            query = """
+            INSERT INTO Posts (user_id, content, title, category)
+            VALUES 
+                (?, ?, ?, ?)
+            """
+            cursor.execute(query, (received_userid, received_posts_text, received_title, received_category))
+            conn.commit()
+
+            # Retrieve the inserted post to get its ID
+            query_get_post_id = """
+            SELECT * FROM Posts
+            WHERE content = ? AND title = ? AND user_id = ?;
+            """
+            cursor.execute(query_get_post_id, (received_posts_text, received_title, received_userid))
+            new_post_row = cursor.fetchone()
+
+            # Return success message and new post ID
+            return {"message": "Success", "post_id": new_post_row[0]}
     
+    # Handle expired token error
     except jwt.ExpiredSignatureError as e:
         print(e)
         return {"message": "Token has expired.", "status": 401}, 401
+
+    # Handle invalid token error
     except jwt.InvalidTokenError as e:
         print(e)
         return {"message": "Invalid token.", "status": 401}, 401
+
+    # Handle any other unexpected errors
     except Exception as e:
         print(f"Error: {e}")
         return {"message": "An unexpected error occurred. Please try again later.", "status": 500}, 500
+
 
 @app.route("/post_like_dislike", methods=["POST"])
 def post_like_dislike():
@@ -718,15 +864,11 @@ def category_posts():
         return result
 
 
+
+
 # ------------------- Functions below here ----------------------------
 
 def get_db_connection():
-    connection_string = (
-        "Driver={ODBC Driver 17 for SQL Server};"
-        "Server=localhost;"
-        "Database=Reddit_db;"
-        "Trusted_Connection=Yes;"
-    )
     return pyodbc.connect(connection_string)
 
 def get_user_info(username):
@@ -869,5 +1011,21 @@ def calculate_like_dislike_ratio(table_name, post_comment_id, actual_post_commen
 
     return likes_per_comments
 
+def check_user_authentication(token):
+    try:
+        # Decode the JWT and return the payload
+        jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return True
+
+    except jwt.ExpiredSignatureError:
+        return {"message": "Token has expired.", "status": 401}, 401
+
+    except jwt.InvalidTokenError:
+        return {"message": "Invalid token.", "status": 401}, 401
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return {"message": "Authentication failed due to server error.", "status": 500}, 500
+
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0", port=8080)

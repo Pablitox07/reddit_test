@@ -1,0 +1,123 @@
+body {
+    background-color: #212121;
+}
+
+.div_post{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 50px;
+    justify-content: space-around;
+    white-space: normal;
+}
+
+.create_post_text{
+    color: white;
+    font-family: sans-serif;
+    padding: 0px;
+    margin: 15px 0px;
+}
+.post_content .post_text{
+    height: auto;
+    padding: 5px;
+}
+#post_title_h1{
+    overflow-wrap: break-word;
+}
+.post_content{
+    display: flex;
+    flex-direction: column;
+    width: 75%;
+    text-align: justify;
+    border: #444 solid 1px;
+    padding: 15px;
+}
+
+.post_text{
+    font-family: sans-serif;
+    font-size: 12px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: justify;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.div_info_post{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.post_inputs {
+    background-color: #2a3236;
+    border-radius: 5px;
+    border: 0px;
+    padding: 10px;
+    color: white;
+    font-size: 16px;
+}
+
+.publish_comment_button{
+    width: 100px;
+    padding: 10px 20px;
+    background-color: #2a3236;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    margin: 20px;
+    border: 0px;
+    justify-content: center;
+}
+
+.publish_comment_button:hover {
+    background-color: #1a1a1a;
+}
+
+.login_if_user_not_logged{
+    font-family: sans-serif;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+}
+
+#comment_input_show_input{
+    display: flex; 
+    flex-direction: column;
+}
+
+.button_like_dislike_no_like_dislike{
+    background-color: transparent;
+    border: 0px transparent;
+}
+
+.button_icon_like, .button_icon_dislike {
+    color: black;
+    cursor: pointer;
+}
+
+.button_liked {
+    color: green;
+    cursor: pointer;
+}
+
+.button_icon_like:hover{
+    color: green;
+    cursor: pointer
+}
+
+.button_disliked {
+    color: red;
+    cursor: pointer;
+}
+
+.button_icon_dislike:hover{
+    color: red;
+    cursor: pointer;
+}

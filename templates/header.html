@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/home.css">
+    <link rel="stylesheet" href="/static/css/home.css">
     <title></title>
     <style>
         html, body {
@@ -53,7 +53,7 @@
     <div class="main_div">
         <div>
             <a href="/">
-                <img src="../static/logo.png" id="logo_img">
+                <img src="/static/images/logo.png" id="logo_img">
             </a>
         </div>
         <div class="div_login_register" id="div_login_register">
@@ -61,7 +61,7 @@
     </div>
 </body>
 <script>
-    const website = "http://127.0.0.1:5000";
+    const website = "";
     let user_info;
 
     // funtion to logout users 
@@ -90,7 +90,7 @@
     } else {
         const user = JSON.parse(localStorage.getItem("user_info")); 
         div_login_register = `
-            <img src="http://127.0.0.1:5000/static/${user["profile_pic"]}" alt="" class="user_icon_profile">
+            <img src="/static/images/${user["profile_pic"]}" alt="" class="user_icon_profile">
             <a class="top_user_name" href="/profile/${user["user_id"]}">${user["username"]}</a>
             <button class="buttons_login_register"  onclick="logout()">logout</button>
         `;

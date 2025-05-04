@@ -1,0 +1,29 @@
+.profile_div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 15px 0px;
+}
+
+.profile_page_pic {
+    height: 250px;
+    width: 250px;
+    border-radius: 50px;
+}
+
+.div_info_user {
+    border: #444 solid 1px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+
+.div_change_profile_pic {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+
+}
